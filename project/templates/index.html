@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="title">
+  Directory
+</h1>
+
+{% for c in courses: -%}
+<div> {{c.class_name}} {{c.term}} {{c.year}} </div>
+
+{% endfor %}
+
+{% endblock %}

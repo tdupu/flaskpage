@@ -1,53 +1,75 @@
 # Schema
 
+  
 This file provides documentation on the underlying schema; try to keep it up to date if you make changes.
 
+  
 ## roster
-			
-Column                | Type        |  Notes
+
+Column  | Type  |  Notes
+------|-------------|-------
+id  | bigint  | unique identifier automatically assigned by postgres
+pronoun | text | 
+name | text | 
+uvm_student | int | 1 if yes, 0 if no
+student_id | int | 0 if not a UVM student
+class | text | 
+major | text |
+degree | text |
+credits | int | 
+reg_status | text | 
+reg_data | text | 
+email | text | email of the user
+netid | text | uvm netid, no spaces, empty if not a uvm student   
+password| text | sha256 hashed password
+  
+
+## courses
+Column  | Type  |  Notes
 ----------------------|-------------|-------
-id                    |	bigint      | unique identifier automatically assigned by postgres (not MIT id)
-departments           | text[]      | List of course_numbers in departments table, e.g. ["18"] or ["6","18"]
-description           |	text	    | Student's public description of themself (not currently used)
-email	              | text	    | smith@gmail.com (not currently used, we just email kerb@mit.edu)
-gender                | text        | optional, currently female, male, or non-binary (optional)
-hours                 | boolean[]   | a list of 7x24=168 booleans indicating hours available to pset (in timezone)
-location              | text        | currently near or far (but will eventually include dorms, ILGs, etc...
-name                  |	text        | e.g. Johnathan Smith
-preferred_name        | text        | e.g. John Smith
-preferred_pronouns    | text	    | e.g. they/them
-preferences           |	jsonb	    | dictionary of preferences (see Preferences tab)
-strengths             | jsonb       | dictionary of preference strength (values are integers from 0 to 10)
-timezone              |	text	    | ('MIT' means MIT's timezone, America/NewYork)
-year                  | smallint    | 1=frosh, 2=soph, 3=junior, 4=senior/super-senior, 5=graduate student
-blocked_student_ids   | bigint[]    | list of student ids this student will never be put in a group with
-			
+id  | bigint  | unique identifier automatically assigned by postgres
+class_name  | text  | Course name, e.g. Algebra I
+class_number  | text  | Course number, e.g. 18.701
+UVM  | smallint  | 0 if UVM course, 1 if not UVM course
+year  | smallint  | Calendar year
+term  | smallint  | Encoding of semester 0=IAP, 
+zulipurl  | text  | webpage to zulip
+zuliprc  | text  | code for a bot in the course
+homepage  | text  | course homepage
+size  | smallint  | number of rows in classlist with class_id = id (read/write ratio is high, so worth maintaining)
+problems | json | a python dictionary whose keys are strings [assignment, problem] and whose values are integers
+
+
+  
+
 ## submissions
-
-Column                | Type        |  Notes
+Column  | Type  |  Notes
 ----------------------|-------------|-------
-id                    |	bigint      | unique identifier automatically assigned by postgres
-class_id	      | bigint	    | id in classes table
-class_number	      | text        | class number (e.g. "18.701")
-year                  | smallint    | year of class (e.g. 2020)
-term                  | smallint    | term of class (e.g. 3 = Fall)
-group_name            | text	    | custom name, editable by anyone in group
-visibility            | smallint    | 0=invitation, 1=permission, 2=automatic, 3=public
-preferences	      | jsonb       | optional group preferences; if unspecified, system constructs something from member preferences
-strengths             | jsonb       | preference strengths
-creator               | text        | kerb of the student who created the group, empty string for system created groups
-editors               | text[]      | list of kerbs of students authorized to modify the group (empty list means everyone)
-size                  | smallint    | number of rows in grouplist with group_id=id (read/write ratio is high, so worth maintaining)
-max                   | smallint    | maximum number of students (None if no limit, may be less than size due to edits)
-match_run             | smallint    | only set for system created groups (creator=''), incremented with each matching
-request_id            | bigint      | id in request_table (if this is not None there is a pending request and we should not make another)
-
-## problems
-
-Column                | Type        |  Notes
-----------------------|-------------|-------
-id                    |	bigint      | unique identifier automatically assigned by postgres
-timestamp             | timestamp   | timestamp of request (in MIT time, no timezone)
-group_id              | bigint      | id of group to whom reqeust was made
-student_id            | bigint      | id of student on whose behalf the request was made
-kerb                  | text        | kerberos id of student on whose behalf the request was made
+id  |  bigint  | unique identifier automatically assigned by SQLAlchemy 
+courseid | int | the database id number of the associated course   
+submission_number| int | order of the submission for the course
+submission_locked | int | 1 if locked, 0 if not
+netid | text | uvm netid, if student is a UVM student
+assignment| text | which group of problems this is in 
+problem | text | the particular problem
+closed | int | 1 if closed, 0 if not
+submission_time | int | unix timestamp for the submission
+total_score1 | double | first score based on initial review  
+total_score2 | double | second score based on initial review
+reviewer1_assignment_time | int | unix timestamp when the first reviewer was matched, -1 if not assigned
+reviewer1 | text | netid or email of first reviewer 
+reviewer1_score | int | a number between 0 and 10, -1 if not assigned
+review1 | text | feedback from reviewer
+review1_timestamp | int | unix time of review
+review1_locked | int | 1 if yes, 0 if no 
+reviewer2_assignment_time | int | unix timestamp when the second reviewer was matched, -1 if not assigned
+reviewer2 | text | netid or email of second reviewer 
+reviewer2_score | int | a number between 0 and 10, -1 if not assigned
+review2 | text | feedback from reviewer
+review2_timestamp | int | unix time of review
+review2_locked | int | 1 if yes, 0 if no 
+new_submission | int | 1 if yes, 0 if no 
+new_match | int | 1 if yes, 0 if no
+new_review1 | int | 1 if yes, 0 if no
+new_review2 | int | 1 if yes, 0 if no
+new_completion | in | 1 if yes, 0 if no
