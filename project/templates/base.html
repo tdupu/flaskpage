@@ -5,8 +5,8 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Flask Auth Example</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css" />
+    <title>Review Software</title>
+    <link rel="stylesheet" href="https://unpkg.com/bulmaswatch/flatly/bulmaswatch.min.css" />
 </head>
 
 <body>
@@ -24,6 +24,12 @@
                             <a href="{{ url_for('main.profile') }}" class="navbar-item">
                                 Profile
                             </a>
+                            <a href="{{ url_for('main.grades') }}" class="navbar-item">
+                                                           Grades
+                                                       </a>
+                            <a href="{{ url_for('main.upload') }}" class="navbar-item">
+                                                           Upload
+                                                       </a>
                             <a href="{{ url_for('auth.login') }}" class="navbar-item">
                                 Login
                             </a>
@@ -33,6 +39,7 @@
                             <a href="{{ url_for('auth.logout') }}" class="navbar-item">
                                 Logout
                             </a>
+
                         </div>
                     </div>
                 </div>

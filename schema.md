@@ -8,9 +8,9 @@ This file provides documentation on the underlying schema; try to keep it up to 
 
 Column  | Type  |  Notes
 ------|-------------|-------
-id  | bigint  | unique identifier automatically assigned by postgres
-pronoun | text | 
-name | text | 
+id  | Integer  | unique identifier automatically assigned by postgres
+pronoun | Text | 
+name | Text | 
 uvm_student | int | 1 if yes, 0 if no
 student_id | int | 0 if not a UVM student
 class | text | 
@@ -28,7 +28,7 @@ password| text | sha256 hashed password
 Column  | Type  |  Notes
 ----------------------|-------------|-------
 id  | bigint  | unique identifier automatically assigned by postgres
-class_name  | text  | Course name, e.g. Algebra I
+coursename  | String  | Course name, e.g. Algebra I
 class_number  | text  | Course number, e.g. 18.701
 UVM  | smallint  | 0 if UVM course, 1 if not UVM course
 year  | smallint  | Calendar year
@@ -46,7 +46,10 @@ problems | json | a python dictionary whose keys are strings [assignment, proble
 Column  | Type  |  Notes
 ----------------------|-------------|-------
 id  |  bigint  | unique identifier automatically assigned by SQLAlchemy 
-courseid | int | the database id number of the associated course   
+courseid | Integer | the database id number of the associated course   
+coursename | String |
+year | int | 
+term | String | 
 submission_number| int | order of the submission for the course
 submission_locked | int | 1 if locked, 0 if not
 netid | text | uvm netid, if student is a UVM student

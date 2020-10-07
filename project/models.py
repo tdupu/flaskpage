@@ -1,16 +1,10 @@
 from flask_login import UserMixin
 from . import db
-#import os
-#import sys
-#from sqlalchemy import Column, ForeignKey, Integer, String, Float, Numeric, JSON
-#from sqlalchemy.ext.declarative import declarative_base
-#from sqlalchemy.orm import relationship
-#from sqlalchemy import create_engine
 
-#Base = declarative_base()
 
 """
-This needs to be modified to work with out excel based databases.
+Where does the database get instantiated?
+
 """
 
 class User(UserMixin,db.Model):
@@ -39,23 +33,21 @@ class Course(db.Model):
     # Here we define columns for the table address.
     # Notice that each column is also a normal Python instance attribute.
     id = db.Column(db.Integer, primary_key=True)
-    class_name = db.Column(db.String(250)) #algebra-one, algebraic-topology, agittoc1, agittoc2, agittoc3
+    coursename = db.Column(db.String(250)) #algebra-one, algebraic-topology, agittoc1, agittoc2, agittoc3
     year = db.Column(db.Integer)
     term = db.Column(db.String(250)) #F=Fall, S=Spring, U=Summer
-    class_number = db.Column(db.String(250))
+    coursenumber = db.Column(db.String(250))
     uvm_course = db.Column(db.Integer)
     zulipurl = db.Column(db.String(250))
     zuliprc = db.Column(db.String(250))
     homepage = db.Column(db.String(250))
     size = db.Column(db.Integer)
 
-  
-
 class Problem(db.Model):
     __tablename__ = 'assignments'
     __table_args__ = {'extend_existing': True}
     id = db.Column(db.Integer, primary_key=True)
-    class_name = db.Column(db.String(250)) #algebra-one, algebraic-topology, agittoc1, agittoc2, agittoc3
+    course_name = db.Column(db.String(250)) #algebra-one, algebraic-topology, agittoc1, agittoc2, agittoc3
     year = db.Column(db.Integer)
     term = db.Column(db.String(250)) #F=Fall, S=Spring, U=Summer
     assignment = db.Column(db.String(250))
@@ -68,7 +60,7 @@ class Submission(db.Model):
     # Here we define columns for the table address.
     # Notice that each column is also a normal Python instance attribute.
     id = db.Column(db.Integer, primary_key=True)
-    course_name = db.Column(db.String)
+    coursename = db.Column(db.String)
     year = db.Column(db.Integer)
     term = db.Column(db.Integer)
     submission_number = db.Column(db.Integer)

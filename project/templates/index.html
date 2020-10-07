@@ -2,12 +2,10 @@
 
 {% block content %}
 <h1 class="title">
-  Directory
+  Courses
 </h1>
-
 {% for c in courses: -%}
-<div> {{c.class_name}} {{c.term}} {{c.year}} </div>
-
+<div> <a class="button" href="/{{c.coursename}}/{{c.year}}/{{c.term}}">{{namedict[c.id]}}</a> </div>
 {% endfor %}
 
 {% endblock %}

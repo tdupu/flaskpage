@@ -2,11 +2,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 #from SQLAlchemy import Column, ForeignKey, Integer, String, Float, Numeric
-
-#
 # DOES NOT CREATE DATABASE ON flask run
-#
-
 # init SQLAlchemy so we can use it later in our models
 db = SQLAlchemy()
 
