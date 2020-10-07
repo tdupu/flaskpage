@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="title">
+  For Which Course?
+</h1>
+{% for c in courses: -%}
+<a class="button" href="/{{c.coursename}}/{{c.year}}/{{c.term}}/upload">{{namedict[c.id]}}</a>
+
+{% endfor %}
+
+{% endblock %}

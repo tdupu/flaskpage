@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="title">
+    Welcome, {{ my_user.netid }}!
+</h1>
+
+<div class="columns">
+  <div class="column">Submissions</div>
+  <div class="column">Reviews</div>
+</div>
+
+<div class="columns">
+  <div class="column">
+  {% for s in fresh_subs: -%}
+  <div> <a href={{urldict[s.submission_number]}}> {{s.submission_number}} (waiting): assignment {{s.assignment}}, problem {{s.problem}} </a> </div>
+  {% endfor %}
+
+  {% for s in matched_subs: -%}
+  <div> <a href={{urldict[s.submission_number]}}> {{s.submission_number}} (matched): assignment {{s.assignment}}, problem {{s.problem}} </a> </div>
+  {% endfor %}
+
+  {% for s in first_reviews: -%}
+  <div> <a href={{urldict[s.submission_number]}}> {{s.submission_number}} (has first score): assignment {{s.assignment}}, problem {{s.problem}} </a></div>
+  {% endfor %}
+
+      
+  {% for s in completed: -%}
+  <div> <a href={{urldict[s.submission_number]}}> {{s.submission_number}} (completed): assignment {{s.assignment}}, problem {{s.problem}} </a> </div>
+  {% endfor %}
+  </div>
+  <div class="column">
+  {% for s in rmatched_subs: -%}
+  <div> <a href={{urldict[s.submission_number]}}> {{s.submission_number}} (matched): assignment {{s.assignment}}, problem {{s.problem}} </a> </div>
+  {% endfor %}
+
+  {% for s in rfirst_reviews: -%}
+  <div> <a href={{urldict[s.submission_number]}}> {{s.submission_number}} (has first score): assignment {{s.assignment}}, problem {{s.problem}} </a> </div>
+  {% endfor %}
+
+      
+  {% for s in rcompleted: -%}
+  <div> <a href={{urldict[s.submission_number]}}> {{s.submission_number}} (completed): assignment {{s.assignment}}, problem {{s.problem}} </a> </div>
+  {% endfor %}
+  </div>
+  </div>
+
+</div>
+
+{% endblock %}

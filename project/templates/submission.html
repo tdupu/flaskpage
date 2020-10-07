@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="title">
+    Submission {{s.submission_number}} ({{coursenamelong}}, {{termlong}} {{s.year}})
+</h1>
+
+<div align="left">
+    <div> Date Submitted: {{dates[s.submission_time]}} </div>
+    <div> Date Matched: {{dates[s.submission_time]}} </div>
+</div>
+<br>
+
+
+<h4 align="left" class="subtitle"> Reviewer 1 </h4>
+
+<div align="left">
+    <div> review date: {{dates[s.review1_timestamp]}}</div>
+    <div> score: {{s.reviewer1_score}} </div>
+<div> weight: {{weight1}} </div>
+<div> review: {{s.review1}} </div>
+</div>
+<br> <br>
+
+<h4 align="left" class="subtitle"> Reviewer 2 </h4>
+<div align="left">
+    <div> review date: {{dates[s.review2_timestamp]}}</div>
+    <div> score: {{s.reviewer2_score}}</div>
+    <div> weight: {{weight2}}</div>
+    <div> review: {{review2}}</div>
+</div>
+<br> <br>
+
+<h4 align="left" class="subtitle"> Scores </h4>
+
+<div align="left">
+    <div> first score: {{total_score1}} </div>
+    <div> second score: {{total_score2}} </div>
+
+</div>
+<input class="button" type="submit" name="review" value="Write Review">
+<input class="button" type="submit" name="poke" value="Poke Reviewers">
+    
+{% endblock %}
