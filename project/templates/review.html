@@ -1,0 +1,31 @@
+
+
+{{if needs_review==True }}
+
+{{if is_late ==True }}
+ YOUR LATE
+{{end if}}
+
+<div class="control">
+  <input class="input" type="number" min="0" max="10" placeholder="score" id="score" name="score">
+</div>
+
+<textarea class="textarea" placeholder="Review" name="review"></textarea>
+
+<label class="checkbox">
+  <input type="checkbox">
+      certify code of conduct
+</label>
+
+<button class="button">Submit</button>
+
+<button class="button is-danger is-outlined" name="reject">Send Back</button>
+
+
+
+{{endif}}
+
+
+
+
+
