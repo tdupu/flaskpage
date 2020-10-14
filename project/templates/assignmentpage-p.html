@@ -1,0 +1,59 @@
+{% extends "base-course.html" %}
+
+{% block content %}
+
+<div class="subtitle"> Homework {{a['number']}} </div>
+
+{% for p in a['problems'] %}
+<form method="POST"  action="/{{p.coursename}}/{{p.year}}/{{p.term}}/uploader2?assignment={{p.assignment}}&problem={{p.problem}}">
+<div class="columns">
+   
+    <div class="column">
+        <div class="box">
+            Problem {{p.problem}}: {{p.description}}
+                <div>
+                    <div> Hints: {{p.hints}} </div>
+ 
+    <div class="column">
+        <div> {{p.resources['videos']}} <div>
+        <div> {{p.resources['text']}} </div>
+        </div>
+       </div>
+    <div class="column">
+        {{% if p.has_submitted(current_user) %}}
+        
+        <div class="box">
+        {{ p.get_submission(current_user).link() }}
+        </div>
+        {{% else: %}}
+        <div class="file has-name is-right">
+          <label class="file-label">
+            <input class="file-input" type="file" name="upload_file">
+            <span class="file-cta">
+              <span class="file-icon">
+                <i class="fas fa-upload"></i>
+              </span>
+              <span class="file-label">
+                Choose a file…
+              </span>
+            </span>
+            <span class="file-name">
+                yourfile.pdf
+            </span>
+          </label>
+        </div>
+        <div>
+            <div class="control">
+             <input class="button" type="submit" name="submit_button" value="submit"> </input>
+             </div>
+        </div>
+        {{% endif %}}
+
+    </div>
+        
+</div>
+
+</form>
+{% endfor %}
+
+{% endblock %}

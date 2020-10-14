@@ -3,21 +3,14 @@
 
 {% block content %}
 
-
-<div class="columns">
-<div class="column">
-    <h1 class="title">
-    Submission {{s.submission_number}}
-    </h1>
-    </div>
-
-<div class="container" align="left">
-     <a href="{{s.coursename}/{{s.year}}/{{s.term}}/return-files/?submission_number={{s.submission_number}}" target="blank"><button class='btn btn-default'>Download!</button></a>
-</div>
-
-<form method="POST" action="/{{s.coursename}}/{{s.year}}/{{s.term}}/{{s.submission_number}}">
+<form method="POST" action="/{{p.coursename}}/{{p.year}}/{{p.term}}/a{{p.assignment}}/p{{p.problem}}">
     
-
+<div class="columns">
+    <div class="column">
+        <h1 class="title">
+        Submission {{s.submission_number}}
+        </h1>
+        </div>
     
     
     <div class="column">

@@ -15,7 +15,7 @@ def login():
 
 @auth.route('/login',methods=['POST'])
 def login_post():
-    email = request.form.get('email')
+    email = request.form.get('email').lower()
     password = request.form.get('password')
     remember = True if request.form.get('remember') else False
     
@@ -30,7 +30,7 @@ def login_post():
         
     #creates the session
     login_user(user,remember=remember)
-    return redirect(url_for('main.profile'))
+    return redirect(url_for('prof.profile'))
 
 @auth.route('/signup')
 def signup():
@@ -39,18 +39,18 @@ def signup():
 @auth.route('/signup',methods=['POST'])
 def signup_post():
     #code to validate and add user to database goes here
-    email = request.form.get('email')
+    email = request.form.get('email').lower()
     name = request.form.get('name')
     password = request.form.get('password')
     
-    user = User.query.filter_by(email=email).first()
+    user = User.query.filter_by(email=email.lower()).first()
     
     if user:
         flash('Email address already exists')
         return redirect(url_for('auth.signup'))
     
     #create a new user with form data
-    new_user = User(email=email, name=name, password = generate_password_hash(password,method='sha256'))
+    new_user = User(email=email.lower(), name=name, password = generate_password_hash(password,method='sha256'))
     
     db.session.add(new_user)
     db.session.commit()

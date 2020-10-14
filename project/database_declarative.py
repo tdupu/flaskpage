@@ -1,6 +1,6 @@
 import os
 import sys
-from sqlalchemy import Column, ForeignKey, Integer, String, Float, Numeric, JSON
+from sqlalchemy import Column, ForeignKey, Integer, String, Float, Numeric, JSON, LargeBinary, Date
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy import create_engine
@@ -33,7 +33,8 @@ class User(Base):
     email = Column(String(250))
     netid = Column(String(250))
     password = Column(String(250))
-
+    participation = Column(JSON)
+    grades = Column(JSON)
 
 class Course(Base):
     __tablename__ = 'courses'
@@ -51,7 +52,6 @@ class Course(Base):
     homepage = Column(String(250))
     size = Column(Integer)
     
-    
 class Problem(Base):
     __tablename__ = 'assignments'
     __table_args__ = {'extend_existing': True}
@@ -61,7 +61,11 @@ class Problem(Base):
     term = Column(String(250)) #F=Fall, S=Spring, U=Summer
     assignment = Column(String(250))
     problem = Column(String(250))
-    references = Column(String(1000))
+    references = Column(JSON)
+    due_date = Column(Date)
+    hints = Column(String(1000))
+    locked = Column(Integer)
+    datasets = Column(JSON)
 
 
 class Submission(Base):
@@ -102,6 +106,9 @@ class Submission(Base):
     new_review1 = Column(Integer)
     new_review2 = Column(Integer)
     new_completion = Column(Integer)
+    bad1 = Column(Integer)
+    bad2 = Column(Integer)
+    data = Column(LargeBinary)
     
  
 #Create an engine that stores data in the local directory's

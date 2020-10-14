@@ -6,45 +6,98 @@
 </h1>
 
 <div class="columns">
-  <div class="column">Submissions</div>
-  <div class="column">Reviews</div>
+    <div class="column"> <p class="title is-5">  Submissions </p></div>
+    <div class="column"> <p class="title is-5">  TODO: Reviews </p></div>
+</div>
+
+
+
+
+<form method="POST" action="/{{s.coursename}}/{{s.year}}/{{s.term}}/{{s.submission_number}}/poke">
+<div class="columns">
+    
+  <div class="column">
+      <div class="box">
+  {% for s in fresh_subs: -%}
+  <div> <a href={{urldict[s.submission_number]}}> {{s.submission_number}} (waiting for {{times[s.submission_number]}} days): assignment {{s.assignment}}, problem {{s.problem}} </a> </div>
+  {% endfor %}
+  <br>
+
+  {% for s in matched_subs: -%}
+  <div> <a href={{urldict[s.submission_number]}}> {{s.submission_number}} ({{times[s.submission_number]}} days since match): assignment {{s.assignment}}, problem {{s.problem}} </a>
+  
+  {% if s.can_poke() %}
+    <button class="button is-danger is-small"> poke </button>
+  {% endif %}
+  
+  </div>
+  {% endfor %}
+  
+  
+  <br>
+  
+  
+
+  {% for s in first_reviews: -%}
+  <div> <a href={{urldict[s.submission_number]}}> {{s.submission_number}} ({{times[s.submission_number]}} days since first scores): assignment {{s.assignment}}, problem {{s.problem}} </a></div>
+  {% endfor %}
+  <br>
+
+
+  </div>
+  </div>
+  
+  
+  
+  <div class="column">
+      <div class="box">
+  {% for s in todo: -%}
+  <div> <a href={{urldict[s.submission_number]}}> {{s.submission_number}} ({{times[s.submission_number]}} days): assignment {{s.assignment}}, problem {{s.problem}} </a> </div>
+  {% endfor %}
+  </div>
+  </div>
+      
+
+</div>
+
+
+<div class="columns">
+  <div class="column"> <p class="title is-5">My Completed Submissions </p></div>
+  <div class="column"><p class="title is-5"> Reviews Completed </p></div>
 </div>
 
 <div class="columns">
+    
   <div class="column">
-  {% for s in fresh_subs: -%}
-  <div> <a href={{urldict[s.submission_number]}}> {{s.submission_number}} (waiting): assignment {{s.assignment}}, problem {{s.problem}} </a> </div>
-  {% endfor %}
-
-  {% for s in matched_subs: -%}
-  <div> <a href={{urldict[s.submission_number]}}> {{s.submission_number}} (matched): assignment {{s.assignment}}, problem {{s.problem}} </a> </div>
-  {% endfor %}
-
-  {% for s in first_reviews: -%}
-  <div> <a href={{urldict[s.submission_number]}}> {{s.submission_number}} (has first score): assignment {{s.assignment}}, problem {{s.problem}} </a></div>
-  {% endfor %}
-
-      
+<div class="box">
   {% for s in completed: -%}
   <div> <a href={{urldict[s.submission_number]}}> {{s.submission_number}} (completed): assignment {{s.assignment}}, problem {{s.problem}} </a> </div>
   {% endfor %}
   </div>
+  </div>
+  <br>
+  
+
   <div class="column">
+    <div class="box">
   {% for s in rmatched_subs: -%}
   <div> <a href={{urldict[s.submission_number]}}> {{s.submission_number}} (matched): assignment {{s.assignment}}, problem {{s.problem}} </a> </div>
   {% endfor %}
-
+  <br>
+  
   {% for s in rfirst_reviews: -%}
-  <div> <a href={{urldict[s.submission_number]}}> {{s.submission_number}} (has first score): assignment {{s.assignment}}, problem {{s.problem}} </a> </div>
+  <div> <a href={{urldict[s.submission_number]}}> {{s.submission_number}} (waiting to be completed): assignment {{s.assignment}}, problem {{s.problem}} </a> </div>
   {% endfor %}
-
-      
+  <br>
+  
   {% for s in rcompleted: -%}
   <div> <a href={{urldict[s.submission_number]}}> {{s.submission_number}} (completed): assignment {{s.assignment}}, problem {{s.problem}} </a> </div>
   {% endfor %}
   </div>
+    </div>
   </div>
 
 </div>
+</form>
 
 {% endblock %}
