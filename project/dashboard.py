@@ -1,10 +1,11 @@
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
-import datetime
 from statistics import *
 from decimal import Decimal
 from .webfunctions import *
+import datetime
+
 
 
 #INSTALL_PATH = '/users/t/d/tdupuy/dev/submission_tools/'

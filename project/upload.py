@@ -72,8 +72,8 @@ def process_submission(content, to_database=False):
             if to_database==True:
                 sub.data=file
             else:
-                path_to_data=f'data/{coursename}/{year}/{term}/uploads/
-                filename='{coursename}-{assignment}-{problem}-{submission_number}'
+                path_to_data=f'data/{coursename}/{year}/{term}/uploads/'
+                filename=f'{coursename}-{assignment}-{problem}-{submission_number}'
                 with open(path_to_data+filename,'w') as f:
                     f=file
             sub.timestamp=int(time.time())
@@ -111,18 +111,18 @@ def process_submission(content, to_database=False):
             result['message']=f"assignment {assignment}, problem {problem}: failed. submission is locked."
         else:
             if isFullPdf(file):
-                if to_database=True:
+                if to_database==True:
                     sub.data==file
                     sub.timestamp=int(time.time())
                 else:
-                    path_to_data=f'data/{coursename}/{year}/{term}/uploads/
-                    filename='{coursename}-{assignment}-{problem}-{submission_number}'
+                    path_to_data=f'data/{coursename}/{year}/{term}/uploads/'
+                    filename=f'{coursename}-{assignment}-{problem}-{submission_number}'
                     with open(path_to_data+filename,'w') as f:
                         f=file
                     
-                 result['success']=1
-                 result['message']=f"assignment {assignment}, problem {problem}: PDF successfully updated."
-                 db.session.commit()
+                result['success']=1
+                result['message']=f"assignment {assignment}, problem {problem}: PDF successfully updated."
+                db.session.commit()
                  
             else:
                 result['success']=0

@@ -3,7 +3,6 @@ from flask_login import login_required, current_user
 from . import db
 from .models import User, Submission
 from sqlalchemy import or_
-from .webfunctions import poke_reviewers
 
 
 def sort_subs_by_stage(subs,reviewer=False):
@@ -141,5 +140,6 @@ def poke(coursename,year,term,submission_number):
     content['term']=term
     content['submission_number']=submission_number
     sub=get_submission(content)
+    sub.poke_reviewers()
     result=sub.notify_late_reviewers()
     flash( result['message'] )

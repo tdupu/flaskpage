@@ -2,9 +2,10 @@
 
 {% block content %}
 
+{{course.get_assignments()}}
 <div class="content">
 <ol type="1">
-{% for a in course.assignments() %}
+{% for a in course.get_assignments() %}
 <li> <a href="/{{course.coursename}}/{{course.year}}/{{course.term}}/hw{{a['number']}}"> Homework Assignment {{a['number']}} </a> (Due: {{a['due_date']}}) </li>
 
 {% endfor %}
@@ -27,19 +28,19 @@
     <th>median</th>
     <th>std</th>
     </tr>
-    
-    {% for problem in course.problems() %}
+    {{course.get_problems()}}
+    {% for problem in course.get_problems() %}
     <tr>
         <td> ({{problem.assignment}},{{problem.problem}}) </td>
         <td>  {{problem.num_submitted()}} </td>
         <td>  {{problem.num_available()}} </td>
         <td>  {{problem.num_waiting()}} </td>
         <td>  {{problem.num_matched()}} </td>
-        <td> {{problem.num_completed()}} </td>
+        <td>  {{problem.num_completed()}} </td>
         <td>  {{clean_dec( problem.mean_match_time() )}} </td>
-        <td>  {{clean_dec( problem.mean_review_time() }} </td>
-        <td>  {{clean_dec( problem.mean_score()}} </td>
-        <td>  {{clean_dec( problem.median_score()} </td>
+        <td>  {{clean_dec( problem.mean_review_time() ) }} </td>
+        <td>  {{clean_dec( problem.mean_score())}} </td>
+        <td>  {{clean_dec( problem.median_score())}} </td>
         <td>  {{clean_dec( problem.std() )}} </td>
     </tr>
     

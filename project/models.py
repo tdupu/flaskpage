@@ -1,10 +1,16 @@
+from statistics import *
+from decimal import Decimal
+import numpy as np
+import datetime
+import time
+
 from flask_login import UserMixin
 from flask_sqlalchemy import SQLAlchemy
+
 from . import db
 from sqlalchemy import or_, and_
 from .webfunctions import *
-import datetime
-import time
+
 
 """
 https://danidee10.github.io/2016/09/19/flask-by-example-2.html
@@ -15,7 +21,25 @@ We should add this line:
 then in the other places we should add:
     from model import db
 """
-
+def get_times(subs):
+    """
+    submissions need to be complete
+    """
+    matching_times=[]
+    review_times=[]
+    for m in subs:
+        t0 = m['submission_time']
+        t1 = m['reviewer1_assignment_time']
+        t2 = m['reviewer2_assignment_time']
+        t11 = m['review1_timestamp']
+        t22 = m['review2_timestamp']
+        tmatch = time_difference(max(t1,t2),t0)
+        treview1 = time_difference(t11,t1)
+        treview2 = time_difference(t22,t2)
+        matching_times.append(tmatch)
+        review_times.append(treview1)
+        review_times.append(treview2)
+    return {"review_times":review_times,"matching_times":matching_times}
 
 def date_to_unit(s):
     return time.mktime(datetime.datetime.strptime(s, "%m/%d/%Y").timetuple())
@@ -41,8 +65,8 @@ def coursename_long(x):
     else:
         return x
            
-def course_html(s):
-    return f"{coursename_long(s.coursename)}, {term_long(s.term)} {year_long(s.year)}"
+def course_html(self):
+    return f"{coursename_long(self.coursename)}, {term_long(seld.term)} {year_long(self.year)}"
     
     
 def has_first_reviews(sub):
@@ -70,7 +94,7 @@ def get_late_reviewers(sub):
     else:
         return []
    
-def notify_late_reviewers(sub):
+def poke_reviewers(sub):
     email={}
     email['message']=f"""
     You have be poked by the author of submission {sub.submission_number}.
@@ -112,6 +136,7 @@ class User(UserMixin,db.Model):
     password = db.Column(db.String(250))
     participation = db.Column(db.JSON)
     grades = db.Column(db.JSON)
+    #self.config = db.Column(db.JSON) #"permissions" = list of course_ids, "group"="owner","admin","user", "emails"=
     
     def get_grade(self,ass):
         """
@@ -151,15 +176,36 @@ class Course(db.Model):
         return f"{coursename_long(self.coursename)}, {term_long(self.term)} {year_long(self.year)}"
         
     def url(self):
-        return f'{self.coursename}/{self.year -2000}/{self.term}'
-    
-            
+        
+        return f"/{self.coursename}/{year_long(self.year)}/{self.term}"
+        
+    def html(self):
+        return f"{coursename_long(self.coursename)}, {term_long(self.term)} {year_long(self.year)}"
+        
+    def get_problems(self):
+        problems = db.session.query(Problem).filter(
+        and_(Problem.coursename==self.coursename,
+        Problem.year==self.year+2000,
+        Problem.term==self.term)).all()
+        return problems
+        
+    def get_assignments(self):
+        problems = self.get_problems()
+        assignments={}
+        for p in problems:
+            if list(assignments.keys()).count(p.assignment)==0:
+                assignments[p.assignment]={}
+                assignments[p.assignment]["problems"] = [p]
+                assignments[p.assignment]["due_date"] = p.due_date
+            else:
+                assignments[p.assignment]["problems"].append(p)
+        return assignments
 
 class Problem(db.Model):
     __tablename__ = 'assignments'
     __table_args__ = {'extend_existing': True}
     id = db.Column(db.Integer, primary_key=True)
-    course_name = db.Column(db.String(250)) #algebra-one, algebraic-topology, agittoc1, agittoc2, agittoc3
+    coursename = db.Column(db.String(250)) #algebra-one, algebraic-topology, agittoc1, agittoc2, agittoc3
     year = db.Column(db.Integer)
     term = db.Column(db.String(250)) #F=Fall, S=Spring, U=Summer
     assignment = db.Column(db.String(250))
@@ -168,17 +214,19 @@ class Problem(db.Model):
     """
     
     """
-    due_date = db.Column(db.Date)
+    due_date = db.Column(db.Integer)
     hints = db.Column(db.String(1000))
     locked = db.Column(db.Integer)
     datasets = db.Column(db.JSON)
     """
-    num_c
-    num_m
-    mt --- matchtime
-    rt --- review time
-    score2 ---
-    ct --- completion time
+    score
+    subs
+    waiting
+    matched
+    reviewed
+    complted
+    rt
+    mt
     """
     
     def get_data(self,key):
@@ -193,9 +241,234 @@ class Problem(db.Model):
     def get_references(self,key):
         return self.references[key]
         
-    
+    def get_submissions(self):
+        #this is stupid
+        subs=db.session.query(Submission).filter(and_(
+        Submission.coursename==self.coursename,
+        Submission.year==self.year,
+        Submission.term==self.term,
+        Submission.assignment==self.assignment,
+        Submission.problem==self.problem)).all()
+        return subs
         
+    def get_matched(self):
+        return db.session.query(Submission).filter(
+        and_(
+        Submission.coursename==self.coursename,
+        Submission.year==self.year,
+        Submission.term==self.term,
+        Submission.assignment==self.assignment,
+        Submission.problem==self.problem,
+        Submission.submission_locked==1
+        )).all()
     
+    
+    def get_reviewed(self):
+        subs = self.get_matched(self)
+        reviewed = []
+        for s in subs:
+            if s.is_reviewed():
+                reviewed.append(s)
+        return reviewed
+
+        return db.session.query(Submission).filter(and_(
+        Submission.coursename==self.coursename,
+        Submission.year==self.year,
+        Submission.term==self.term,
+        Submission.assignment==self.assignment,
+        Submission.problem==self.problem,
+        Submission.submission_locked==1,
+        Submission.review2_timestamp>-1,
+        Submission.review2_timestamp>-1)).all()
+        
+    def score1(self,subs_to_update=None):
+        if subs_to_update==None:
+            subs_to_update=self.get_reviewed()
+        for s in subs_to_update:
+            s.score1()
+        
+        result={'success':1, 'message':'total_score1 values have been updated'}
+        return result
+        
+    def get_course(self):
+        return db.session.query(Course).filter(
+        and_(
+        Course.coursename==self.coursename,
+        Course.year==self.year,
+        Courseterm==self.term
+        )).first()
+        
+    def num_submitted(self):
+        return len(self.get_submissions())
+        
+    def num_available(self):
+        return len(self.get_course().size) - self.num_submitted()
+        
+    def num_waiting(self):
+        return len(datasets['waiting'])
+        
+    def num_matched(self):
+        return len(self.datasets['matched'])
+        
+    def num_completed(self):
+        return len(self.datasets['completed'])
+        
+    def mean_match_time(self):
+        return mean(self.datasets['mt'])
+        
+    def mean_review_time(self):
+        return mean(self.datasets['rt'])
+        
+    def mean_score(self):
+        return mean(self.datasets['score'])
+        
+    def median_score(self):
+        return median(self.datasets('score'))
+        
+    def std(self):
+        return std(self.datasets('score'))
+    
+    def url(self):
+        return f"/{p.coursename}/{p.year}/{p.term}/hw{p.assignment}"
+        
+    def histogram(key,user=None):
+        """
+        tm
+        tr
+        tc
+        score2
+        """
+        #<img src="/plot.png" "my plot">
+        import io
+        from flask import Response
+        from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+        from matplotlib.figure import Figure
+        import matplotlib.pyplot as plt
+        data = self.datasets[key]
+        n=len(data)
+        plt.hist(data, bins=7)  # arguments are passed to np.histogram
+        plt.title(f"{key}: assignment {self.assignment}, problem {self.problem} (n={n})")
+        fig=plt.figure()
+        output = io.BytesIO()
+        FigureCanvas(fig).print_png(output)
+        return Response(output.getvalue(), mimetype='image/png')
+    
+    def _get_time_data(self,subs):
+        """
+        submissions need to be complete
+        """
+        matching_times=[]
+        review_times=[]
+        for m in subs:
+            t0 = m.submission_time
+            t1 = m.reviewer1_assignment_time
+            t2 = m.reviewer2_assignment_time
+            t11 = m.review1_timestamp
+            t22 = m.review2_timestamp
+            tmatch = time_difference(max(t1,t2),t0)
+            treview1 = time_difference(t11,t1)
+            treview2 = time_difference(t22,t2)
+            matching_times.append(tmatch)
+            review_times.append(treview1)
+            review_times.append(treview2)
+        return {"rt":review_times,"mt":matching_times}
+       
+    def make_stats(self):
+        stats={}
+        d = self.datasets
+        scores=d['scores']
+        n = len()
+        if len(scores)>0:
+            stats['mean']=mean(scores)
+            stats['median']=median(scores)
+            if len(scores)>1:
+                stats['std']=stdev(scores)
+            else:
+                stats['std']=0
+            stats['mean_rt']=mean(d['rt']) #review times
+            stats['mean_mt']=mean(d['mt']) #matching times
+        else:
+            stats['mean']=0
+            stats['med']=0
+            stats['std']=0
+            stats['mean_rt']=0
+            stats['mean_mt']=0
+        return stats
+    
+    def make_scored2(self,scored1=None,subs_to_update=None):
+        if scored1==None:
+            scored1=self.get_scored1()
+        if subs_to_update==None:
+            subs_to_update=self.get_scored1()
+            
+        scored2=[]
+        for m in subs_to_update:
+            reviewers=m.get_reviewers()
+            reviewer1 =reviewers[0]
+            reviewer2 =reviewers[1]
+            s1 = m.reviewer1_score
+            s2 = m.reviewer2_score
+            search1 = []
+            search2 = []
+            for s in scored1:
+                if s.netid==reviewer1:
+                    search1.append(n)
+                if s.netid==reviewer2:
+                    search2.append(n)
+                    
+            if len(search1)>1 and len(search2)>1:
+                sub1=search1[0]
+                sub2=search2[0]
+                r1=sub1.total_score1
+                r2=sub2.total_score1
+                w1=float(r1/(r1+r2))
+                w2=float(r2/(r1+r2))
+                ts2=w1*s1+w2+s2
+                m.total_score2=ts2
+                scored2.append(m)
+                
+        db.session.commit()
+        return scored2
+    
+    def make_clean_data(self):
+        """
+        INPUT: a problem class
+        OUTPUT: prints to JSON
+           --d['subs'] submission_ids
+           --d['waiting'] submission_ids in waiting
+           --d['matched'] submission_ids matched
+           --
+           --
+        """
+        subs = self.get_submissions()
+        waiting = []
+        for sub in subs:
+            if sub.submission_locked==0:
+                waiting.append(sub)
+        matched = self.get_matched()
+        scored1=[]
+        for m in matched:
+            if m.is_reviewed():
+                m.scored1()
+                scored1.append(m)
+        scored2 = self.make_scored2(
+        scored1=scored1,
+        subs_to_update=scored1)
+        
+        d={}
+        d['subs']=[m.id for m in subs]
+        d['waiting'] = [m.id for m in waiting]
+        d['matched']=[m.id for m in matched]
+        d['reviewed']=[m.id for m in scored1]
+        d['completed']=[m.id for m in scored2]
+        d['score'] = [m.total_score2 for m in scored2]
+        tt=self._get_time_data(scored2)
+        d['rt'] = tt['rt']
+        d['mt'] = tt['rt']
+        self.datasets=d
+        return {'success':1,'message':f'the datasets for {self.assignment} problem {self.problem} have been updated'}
+            
+        
 
 class Submission(db.Model):
     __tablename__ = 'submissions'
@@ -238,8 +511,8 @@ class Submission(db.Model):
     bad1 = db.Column(db.Integer())
     bad2 = db.Column(db.Integer())
     data = db.Column(db.LargeBinary)
-    
-
+    w1 = db.Column(db.Float)
+    w2 = db.Column(db.Float)
     
     def is_matched(self):
         if self.reviewer1_assignment_time>-1 and self.reviewer2_assignment_time>-1:
@@ -249,6 +522,41 @@ class Submission(db.Model):
 
     def is_reviewed(self):
         return self.review1_timestamp>-1 and self.review2_timestamp>-1
+        
+    def make_score1(self):
+        result = {"success":1,"message":'score1 has been updated'}
+        if self.is_reviewed():
+            self.score1 = (self.reviewer1_score + self.reviewer2_score)/2
+            return result
+        else:
+            result["success"]=0
+            result["message"]="score1 not updated. This submission does not have two reviews"
+            return result
+            
+    def get_reviewer_subs(self):
+        reviewers=self.get_reviewers()
+        reviewer1 = reviewers[0]
+        reviewer2 = reviewers[1]
+        
+        return db.session.query(Problem).filter(and_(
+        Problem.coursename==self.coursename,
+        Problem.year==self.year,
+        Problem.term==self.term,
+        Problem.assignment==self.assignment,
+        Problem.problem==self.problem,
+        or_(Problem.netid==reviewer1.netid,
+            Problem.netid==reviewer2.netid)
+        )).all()
+            
+    def get_problem(self):
+        return db.session.query(Problem).filter(and_(
+        Problem.coursename==self.coursename,
+        Problem.year==self.year,
+        Problem.term==self.term,
+        Problem.assignment==self.assignment,
+        Problem.problem==self.problem
+        )).first()
+        
         
     def is_submitter(self,user):
         return self.netid==user.netid
@@ -350,6 +658,14 @@ class Submission(db.Model):
         
     def url(self):
         return f'{self.coursename}/{self.year -2000}/{self.term}/{self.submission_number}'
+    
+    def path_to_upload(self):
+        return self.path_to_data()+"upload/"
         
+    def path_to_data(self):
+        return f'../data/{self.coursename}/{self.year}/{self.term}/'
+        
+    def filename(self):
+        return f'{self.coursename}-{self.assignment}-{self.problem}-{self.submission_number}'
 
 

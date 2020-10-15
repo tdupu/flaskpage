@@ -1,9 +1,12 @@
+import sys
 import time
 import datetime
+import numpy as np
+import matplotlib.pyplot as plt
+from statistics import *
+from decimal import Decimal
+
 from . import db
-#from models import db
-#from models import Submission
-#from .models import Submission
 
 
 #we need to do this with all of the emails
@@ -19,7 +22,47 @@ def all_same(mylist):
             if x!=x[0]:
                 return False
         return True
+
+def get_date(unixtime):
+    return datetime.fromtimestamp(unixtime)
+    
+def get_times(subs):
+    """
+    submissions need to be complete
+    """
+    matching_times=[]
+    review_times=[]
+    for m in subs:
+        t0 = m['submission_time']
+        t1 = m['reviewer1_assignment_time']
+        t2 = m['reviewer2_assignment_time']
+        t11 = m['review1_timestamp']
+        t22 = m['review2_timestamp']
+        tmatch = time_difference(max(t1,t2),t0)
+        treview1 = time_difference(t11,t1)
+        treview2 = time_difference(t22,t2)
+        matching_times.append(tmatch)
+        review_times.append(treview1)
+        review_times.append(treview2)
+    return {"review_times":review_times,"matching_times":matching_times}
+    
+def searchd(list_of_dicts,sdict):
+    new_list = []
+    keys=sdict.keys()
+    for x in list_of_dicts:
+        ok = 1
+        for key in keys:
+            if x[key]!=sdict[key]:
+                ok=0
+                break
         
+        if ok==1:
+            new_list.append(x)
+    return new_list
+    
+def clean_dec(x):
+    return format(x,'.3f')
+    
 def unixtime():
     return int(time.time())
 
@@ -122,7 +165,6 @@ def is_valid_problem(content):
         return True
     else:
         return False
-        
 
 def get_submissions(content):
     coursename=content['coursename']
@@ -144,3 +186,5 @@ def get_reviewersc(content):
     #assumes valid content
     sub=get_submissions(content)[0]
     return [sub.reviewer1,sub.reviewer2]
+    
+

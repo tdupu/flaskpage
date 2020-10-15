@@ -2,8 +2,10 @@ from flask import Blueprint, render_template, request, flash
 from flask_login import login_required, current_user
 from . import db
 from sqlalchemy import or_, and_
-from .models import Submission, Course
-from .models import year_long, term_long, coursename_long
+#from .models import Submission, Course, Problem,
+#from .models import year_long, term_long, coursename_long
+from .models import *
+from .webfunctions import *
 
 import sys
 sys.path.append('/Users/taylordupuy/Documents/web-development/dev/email_tools')
@@ -37,17 +39,38 @@ def index():
     
     namedict={}
     for c in courses:
-        namedict[c.id]=c.course_html()
+        namedict[c.id]=c.html()
     return render_template('index.html',**locals())
 
 #################################
 
 @main.route('/<coursename>/<year>/<term>', methods=['GET'])
 def coursepage(coursename,year,term):
+    
     yearlong=year_long(year)
     termlong=term_long(term)
     coursenamelong=coursename_long(coursename)
-    return render_template('coursepage.html',**locals())
+        
+    course=db.session.query(Course).filter(and_(
+    Course.coursename==coursename,
+    Course.year==year,
+    Course.term==term)).first()
+    
+    probs = course.get_problems()
+    print(probs)
+    
+    for p in probs:
+        try:
+            p.make_clean_data()
+            print(f"{p.assignment} {p.problem} is ok")
+            
+        except:
+            pass
+            
+    print( course.url() )
+    
+    return "YAY"
+    #return render_template('coursepage.html',**locals())
 
 #################################
 
@@ -59,7 +82,7 @@ def upload():
     
     namedict={}
     for c in courses:
-        namedict[c.id]=course_html(c)
+        namedict[c.id]=c.html()
     return render_template('select_course_upload.html',**locals())
 
 #################################

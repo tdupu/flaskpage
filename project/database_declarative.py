@@ -62,7 +62,7 @@ class Problem(Base):
     assignment = Column(String(250))
     problem = Column(String(250))
     references = Column(JSON)
-    due_date = Column(Date)
+    due_date = Column(Integer)
     hints = Column(String(1000))
     locked = Column(Integer)
     datasets = Column(JSON)
@@ -109,6 +109,8 @@ class Submission(Base):
     bad1 = Column(Integer)
     bad2 = Column(Integer)
     data = Column(LargeBinary)
+    w1 = Column(Float)
+    w2 = Column(Float)
     
  
 #Create an engine that stores data in the local directory's
