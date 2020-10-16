@@ -1,12 +1,13 @@
-{% extends "base-course.html" %}
+{% extends "base-course-left.html" %}
 
 {% block content %}
 
-{{course.get_assignments()}}
+<div class="subtitle"> Homework Assignments </div>
+
 <div class="content">
 <ol type="1">
-{% for a in course.get_assignments() %}
-<li> <a href="/{{course.coursename}}/{{course.year}}/{{course.term}}/hw{{a['number']}}"> Homework Assignment {{a['number']}} </a> (Due: {{a['due_date']}}) </li>
+{% for i in a_ind %}
+<li> <a href="/{{course.coursename}}/{{course.year}}/{{course.term}}/hw/{{i}}/{{'p'}}"> Homework {{i}} </a> (Due: {{a[i]['due_date']}}) </li>
 
 {% endfor %}
 </ol>
@@ -16,7 +17,8 @@
 
 <table class="table">
     <tr>
-    <th>(assignment,problem)</th>
+    <th>assignment</th>
+    <th>problem</th>
     <th>subs</th>
     <th>not subbed</th>
     <th>waiting</th>
@@ -28,8 +30,7 @@
     <th>median</th>
     <th>std</th>
     </tr>
-    {{course.get_problems()}}
-    {% for problem in course.get_problems() %}
+    {% for problem in good_probs %}
     <tr>
         <td> ({{problem.assignment}},{{problem.problem}}) </td>
         <td>  {{problem.num_submitted()}} </td>

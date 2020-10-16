@@ -2,9 +2,9 @@
 
 {% block content %}
 
-<div class="subtitle"> Homework {{a['number']}} </div>
+<div class="subtitle"> Homework {{i}} </div>
 
-{% for p in a['problems'] %}
+{% for p in problems %}
 <form method="POST"  action="/{{p.coursename}}/{{p.year}}/{{p.term}}/uploader2?assignment={{p.assignment}}&problem={{p.problem}}">
 <div class="columns">
    
@@ -20,12 +20,12 @@
         </div>
        </div>
     <div class="column">
-        {{% if p.has_submitted(current_user) %}}
+        {% if p.has_submitted(current_user) %}
         
         <div class="box">
         {{ p.get_submission(current_user).link() }}
         </div>
-        {{% else: %}}
+        {% else: %}
         <div class="file has-name is-right">
           <label class="file-label">
             <input class="file-input" type="file" name="upload_file">
@@ -47,7 +47,7 @@
              <input class="button" type="submit" name="submit_button" value="submit"> </input>
              </div>
         </div>
-        {{% endif %}}
+        {% endif %}
 
     </div>
         

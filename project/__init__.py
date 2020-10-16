@@ -6,13 +6,14 @@ from flask_login import LoginManager
 # DOES NOT CREATE DATABASE ON flask run
 # init SQLAlchemy so we can use it later in our models
 
-db = SQLAlchemy()
+#db = SQLAlchemy()
 
 def create_app():
     app = Flask(__name__)
-
     app.config['SECRET_KEY'] = 'my_random_key'
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
+    
+    from .models import db
     db.init_app(app)
     
     # blueprint for auth routes in our app

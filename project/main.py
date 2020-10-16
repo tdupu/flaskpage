@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, flash
 from flask_login import login_required, current_user
-from . import db
+from .models import db
 from sqlalchemy import or_, and_
 #from .models import Submission, Course, Problem,
 #from .models import year_long, term_long, coursename_long
@@ -46,6 +46,7 @@ def index():
 
 @main.route('/<coursename>/<year>/<term>', methods=['GET'])
 def coursepage(coursename,year,term):
+    from .webfunctions import clean_dec
     
     yearlong=year_long(year)
     termlong=term_long(term)
@@ -56,21 +57,24 @@ def coursepage(coursename,year,term):
     Course.year==year,
     Course.term==term)).first()
     
-    probs = course.get_problems()
-    print(probs)
+    print('hello world')
+    a = course.get_assignments()
+    a_ind = [str(i) for i in range(1,len(a.keys()))]
     
-    for p in probs:
-        try:
-            p.make_clean_data()
-            print(f"{p.assignment} {p.problem} is ok")
-            
-        except:
-            pass
-            
-    print( course.url() )
+    print(course.get_problems())
+    print(a)
     
-    return "YAY"
-    #return render_template('coursepage.html',**locals())
+    #this is a hack and takes forever to run
+    good_probs =[]
+    for i in a_ind:
+        for p in a[i]['problems']:
+            try:
+                p.make_clean_data()
+                good_probs.append(p)
+            except:
+                pass
+    
+    return render_template('coursepage.html',**locals())
 
 #################################
 
@@ -92,6 +96,36 @@ def upload():
 def grades():
     my_user=current_user
     return "grades"
+    
+#################################
+            
+@main.route('/<coursename>/<int:year>/<string:term>/hw/<int:i>/<x>', methods=['GET'])
+def homework(coursename,year,term,i,x):
+    #i will be a string here because dicts can only take integer strings
+    print([coursename,year,term,i,x])
+    
+    problems=db.session.query(Problem).filter(and_(
+    Problem.coursename==coursename,
+    Problem.year==(year+2000),
+    Problem.term==term,
+    Problem.assignment==i
+    )).all()
+    
+    print(problems)
+    
+    #this should be done with a link
+    course=problems[0].course
+    
+    print(problems[0])
+    
+    print(course)
+    
+    if x=='p':
+        return render_template('assignmentpage-p.html',**locals())
+    
+    if x=='s':
+        return render_template('assignmentpage-s.html',**locals())
+
 
 #We could handle a lot of data with queries
 #On each user page we could bake the current course into the submission page request.

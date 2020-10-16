@@ -6,8 +6,6 @@ import matplotlib.pyplot as plt
 from statistics import *
 from decimal import Decimal
 
-from . import db
-
 
 #we need to do this with all of the emails
 def convert_to_lowercase(mystring):
@@ -87,12 +85,14 @@ def is_valid_score(score):
     else:
         return False
 
+"""
 def current_is_reviewer(sub):
     reviewers=get_reviewers(sub)
     if reviewers.count(current_user.email)>0:
         return True
     else:
         return False
+"""
 
 def send_confirmation_email(subs):
     emails = [sub.email for sub in subs]
@@ -118,73 +118,91 @@ def send_confirmation_email(subs):
         result = {}
         result['message']=send_basic_email(email)
         return result
-        
-#
-# GENERAL DICTIONARY BASED METHODS
-#
-#
-    
-def get_submission(content, by_email=False):
-    coursename=content['coursename']
-    year=content['year']
-    term=content['term']
-    submission_number=content['submission_number']
-    
-    if by_email==True:
-        email=content['email']
-        assignment=content['assignment']
-        problem=content['problem']
-        subs = db.session.query(Submission).filter(and_(Submission.email==email,
-        Submission.coursename==coursename,
-        Submission.year==year,
-        Submission.term==term,
-        Submission.assignment==assignment,
-        Submission.problem==problem)).first()
-    else:
-        subs = db.session.query(Submission).filter(and_(Submission.submission_number==submission_number,
-        Submission.coursename==coursename,
-        Submission.year==year,
-        Submission.term==term)).first()
 
-    return subs
+def get_times(subs):
+    """
+    submissions need to be complete
+    """
+    matching_times=[]
+    review_times=[]
+    for m in subs:
+        t0 = m['submission_time']
+        t1 = m['reviewer1_assignment_time']
+        t2 = m['reviewer2_assignment_time']
+        t11 = m['review1_timestamp']
+        t22 = m['review2_timestamp']
+        tmatch = time_difference(max(t1,t2),t0)
+        treview1 = time_difference(t11,t1)
+        treview2 = time_difference(t22,t2)
+        matching_times.append(tmatch)
+        review_times.append(treview1)
+        review_times.append(treview2)
+    return {"review_times":review_times,"matching_times":matching_times}
+
+def date_to_unit(s):
+    return time.mktime(datetime.datetime.strptime(s, "%m/%d/%Y").timetuple())
+
+def term_long(x):
+    if x=='f':
+           return "Fall"
+    elif x=='s':
+        return "Spring"
+    elif x=='u':
+        return "Summer"
+    else:
+        return x
+           
+def year_long(x):
+    return "20"+str(x)
+       
+def coursename_long(x):
+    if x=='algebra-one':
+        return "Algebra I"
+    elif x=='algebraic-topology':
+        return "Algebraic Topology"
+    else:
+        return x
+           
+def course_html(c):
+    return f"{coursename_long(c.coursename)}, {term_long(c.term)} {year_long(c.year)}"
     
-def is_valid_problem(content):
-    coursename=content['coursename']
-    year=content['year']
-    term=content['term']
-    email=content['email']
-    assignment=content['assignment']
-    problem=content['problem']
-    #file=content['file']
-    probs = db.session.query(Problem).filter(and_(Problem.coursename==couresname,
-    Problem.year==year,
-    Problem.term==term,
-    Problem.assignment==assignment,
-    Problem.problem==problem)).all()
-    if len(probs)==1:
+    
+def has_first_reviews(sub):
+    if sub.reviewer1_score>-1 and sub.reviewer2_score>-1:
         return True
     else:
         return False
-
-def get_submissions(content):
-    coursename=content['coursename']
-    year=content['year']
-    term=content['term']
-    email=content['email']
-    assignment=content['assignment']
-    problem=content['problem']
-    #file=content['file']
-    subs = db.query(Submission).filter(and_(Submission.email==email,
-    Submission.coursename==coursename,
-    Submission.year==year,
-    Submission.term==term,
-    Submission.assignment==assignment,
-    Submission.problem==problem)).all()
-    return subs
-
-def get_reviewersc(content):
-    #assumes valid content
-    sub=get_submissions(content)[0]
-    return [sub.reviewer1,sub.reviewer2]
+        
+def get_missing_reviewers(sub):
+    late_reviewers = []
+    if sub.reviewer1_score==-1:
+        late_reviewers.append(sub.reviewer1)
+    if sub.reviwer2_score==-1:
+        late_reviewers.append(sub.reviewer2)
+    return late_reviewers
     
-
+def get_late_reviewers(sub):
+    reviewers = get_missing_reviewers(sub)
+    now = int(time.time())
+    then = sub.timestamp
+    result = {}
+    if time_difference(now,then)>7:
+        late_reviewers = get_missing_reviewers(sub)
+        return late_reviewers
+    else:
+        return []
+   
+def poke_reviewers(sub):
+    email={}
+    email['message']=f"""
+    You have be poked by the author of submission {sub.submission_number}.
+    """
+    email['subject']="Review for {sub.submission_number}."
+    late_reviewers=get_late_reviewers(sub)
+    for r in late_reviewers:
+        email['receiver']=r
+        send_basic_email(email)
+    
+    result={}
+    result['message']="reviewers have been poked"
+    return result

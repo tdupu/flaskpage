@@ -15,7 +15,7 @@ Will create flaskpage_database.db
 Base = declarative_base()
  
 class User(Base):
-    __tablename__ = 'roster'
+    __tablename__ = 'users'
     __table_args__ = {'extend_existing': True}
     # Here we define columns for the table person
     # Notice that each column is also a normal Python instance attribute.
@@ -35,6 +35,8 @@ class User(Base):
     password = Column(String(250))
     participation = Column(JSON)
     grades = Column(JSON)
+    config = Column(JSON)
+    submissions=relationship('Submission',backref='user')
 
 class Course(Base):
     __tablename__ = 'courses'
@@ -51,9 +53,12 @@ class Course(Base):
     zuliprc = Column(String(250))
     homepage = Column(String(250))
     size = Column(Integer)
+    #users=relationship('Users',back_populates='courses')
+    #problems=relationship('Problem',back_populates='course')
+    problems=relationship('Problem',backref='course')
     
 class Problem(Base):
-    __tablename__ = 'assignments'
+    __tablename__ = 'problems'
     __table_args__ = {'extend_existing': True}
     id = Column(Integer, primary_key=True)
     coursename = Column(String(250)) #algebra-one, algebraic-topology, agittoc1, agittoc2, agittoc3
@@ -66,8 +71,11 @@ class Problem(Base):
     hints = Column(String(1000))
     locked = Column(Integer)
     datasets = Column(JSON)
-
-
+    submissions=relationship('Submission',backref='prob')
+    course_id=Column(Integer,ForeignKey('courses.id'))
+    description = Column(String(1000))
+    #course=relationship('Course',back_populates='problems')
+    
 class Submission(Base):
     __tablename__ = 'submissions'
     __table_args__ = {'extend_existing': True}
@@ -111,7 +119,10 @@ class Submission(Base):
     data = Column(LargeBinary)
     w1 = Column(Float)
     w2 = Column(Float)
-    
+    user_id = Column(Integer,ForeignKey('users.id'))
+    #user = relationship('User',back_populates='submissions')
+    prob_id = Column(Integer,ForeignKey('problems.id'))
+    #prob = relationship('Problem',back_populates='submissions')
  
 #Create an engine that stores data in the local directory's
 #sqlalchemy_example.db file.
