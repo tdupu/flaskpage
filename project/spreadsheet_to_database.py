@@ -29,7 +29,7 @@ from email_functions import *
 from sqlalchemy import or_, and_
 from sqlalchemy.orm import relationship
 
-engine = create_engine('sqlite:///db.sqlite')
+engine = create_engine('sqlite:///../data/db.sqlite')
 Base.metadata.bind = engine
 from sqlalchemy.orm import sessionmaker
 DBSession = sessionmaker()

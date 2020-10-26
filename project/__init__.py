@@ -11,7 +11,7 @@ from flask_login import LoginManager
 def create_app():
     app = Flask(__name__)
     app.config['SECRET_KEY'] = 'my_random_key'
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///../data/db.sqlite'
     
     from .models import db
     db.init_app(app)
