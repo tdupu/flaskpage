@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, flash
 from flask_login import login_required, current_user
-from . import db
+#from . import db
+from .models import db
 from .models import User, Submission
 from sqlalchemy import or_, and_
 from .webfunctions import *

@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, flash
 from flask_login import login_required, current_user
-from . import db
+from .models import db
 from .models import User
 
 def increment_submission_count(path_to_data='./'):

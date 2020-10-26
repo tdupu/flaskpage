@@ -560,7 +560,7 @@ class Submission(db.Model):
             return "NA"
 
     def is_complete(self):
-        from . import db
+        #from . import db
         if self.is_reviewed():
             a=self.assignment
             p=self.problem
@@ -633,7 +633,7 @@ class Submission(db.Model):
     def filename(self):
         return f'{self.coursename}-{self.assignment}-{self.problem}-{self.submission_number}'
 
-db.create_all()
+#db.create_all()
 
 ##########################
 ##########################
