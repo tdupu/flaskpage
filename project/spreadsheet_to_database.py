@@ -205,8 +205,11 @@ for x in myusers:
         reg_data = x['reg_data'],
         email = x['email'].lower(),
         netid = x['netid'],
-        password = generate_password_hash(x['password'],method='sha256'),
-        config={'courses':[{'id':algebra.id,'group':'user'}],'emails':[],'super_user':0})
+        password = generate_password_hash(x['password'],method='sha256')#,
+        #config={
+        #'courses':[{'id':algebra.id,'group':'user'}],
+        #'emails':[],'super_user':0 }
+                      )
     session.add(new_person)
 
 session.commit()
