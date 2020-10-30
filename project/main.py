@@ -46,7 +46,7 @@ def index():
 
 @main.route('/<coursename>/<year>/<term>', methods=['GET'])
 def coursepage(coursename,year,term):
-    from .webfunctions import clean_dec
+    from .webfunctions import clean_dec, get_date
     
     yearlong=year_long(year)
     termlong=term_long(term)
@@ -57,7 +57,7 @@ def coursepage(coursename,year,term):
     Course.year==year,
     Course.term==term)).first()
     
-    print('hello world')
+    #print('hello world')
     a = course.get_assignments()
     a_ind = [str(i) for i in range(1,len(a.keys()))]
     

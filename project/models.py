@@ -56,6 +56,8 @@ class User(UserMixin,db.Model):
             }
     """
     submissions=db.relationship('Submission',backref='user')
+    #reviewer1_submissions=db.relationship('Submission',backref='reviewer1_obj')
+    #reviewer2_submissions=db.relationship('Submission',backref='reviewer2_obj')
     
     def get_grade(self,ass):
         """
@@ -178,6 +180,18 @@ class Problem(db.Model):
     def get_references(self,key):
         return self.references[key]
         
+    def has_submitted(self,some_user):
+        for s in self.submissions:
+            if s.user==some_user:
+                return True
+        return False
+    
+    def get_submission(self,some_user):
+        for s in self.submissions:
+            if s.user==some_user:
+                return s
+        return None
+
     def get_submissions(self):
         #this is stupid
         subs=db.session.query(Submission).filter(and_(
@@ -471,12 +485,17 @@ class Submission(db.Model):
     user_id = db.Column(db.Integer,db.ForeignKey('users.id'))
     #user = relationship('User',back_populates='submissions')
     prob_id = db.Column(db.Integer,db.ForeignKey('problems.id'))
+    #reviewer1_obj_id = db.Column(db.Integer,db.ForeignKey('users.id'))
+    #reviewer2_obj_id = db.Column(db.Integer,db.ForeignKey('users.id'))
     
     #reviewer_submission_id = Column(Integer, ForeignKey('submissions.id')
     #reviewer_submission=relationship(
     #"Submission")
     #lazy="joined",
     #join_depth=2)
+    
+    #def url(self):
+    #    return f"/{self.coursename}/{self.year}/{self.term}/{self.submission_number}"
     
     
     def is_matched(self):
@@ -547,12 +566,12 @@ class Submission(db.Model):
     def is_late(self,user):
         return (self.is_reviewer(user) and self.days_since_matched()>7)
         
-    def is_overdue(self):
-        return "not implemented"
+    #def is_overdue(self):
+    #    return "not implemented"
         
     def can_poke(self):
         return ( (not self.is_reviewed()) and  (self.days_since_matched()>7))
-        
+    
     def days_since_matched(self):
         if self.reviewer1_assignment_time>=-1:
             return time_difference(unixtime(),self.reviewer1_assignment_time)

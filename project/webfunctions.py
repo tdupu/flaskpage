@@ -21,8 +21,15 @@ def all_same(mylist):
                 return False
         return True
 
-def get_date(unixtime):
-    return datetime.fromtimestamp(unixtime)
+def get_date(unixtime, format_str='%m/%d/%Y'):
+    return datetime.datetime.fromtimestamp(unixtime).strftime(format_str)
+    
+def strdate_to_int(s):
+    time.mktime(datetime.datetime.strptime(s, "%m/%d/%Y").timetuple())
+    
+def string_to_timestamp(date_str, format_str='%m/%d/%Y'):
+    datetime_obj = datetime.datetime.strptime(date_str, format_str)
+    return datetime_obj.timestamp()
     
 def get_times(subs):
     """
@@ -206,3 +213,129 @@ def poke_reviewers(sub):
     result={}
     result['message']="reviewers have been poked"
     return result
+
+def sort_subs_by_stage(subs,reviewer=False):
+    cleandict={}
+    matched = []
+    cleandict['waiting']=[]
+    cleandict['just_matched']=[]
+    cleandict['first_reviews']=[]
+    cleandict['completed']=[]
+    
+    #split into matched and unmatched
+    if reviewer==False:
+        for s in subs:
+            if not s.is_matched():
+                cleandict['waiting'].append(s)
+            else:
+                matched.append(s)
+    if reviewer==True:
+        matched=subs
+    
+    #collect ones with reviews
+    for s in matched:
+        if s.is_reviewed():
+            cleandict['first_reviews'].append(s)
+    
+    #remove ones with removed from the matched
+    #these are now in the matching stage but waiting
+    #for first reviews
+    for c in cleandict['first_reviews']:
+        matched.remove(c)
+    cleandict['just_matched']=matched
+    
+    #collect all of the completed ones
+    for s in cleandict['first_reviews']:
+        if s.is_complete():
+            cleandict['completed'].append(s)
+        
+    #to complete remove the completed ones from the first_review list
+    for c in cleandict['completed']:
+        cleandict['first_reviews'].remove(c)
+        
+    output = {}
+    output['waiting']=sorted(cleandict['waiting'],
+    key=lambda c: [c.assignment,c.problem])
+    output['just_matched']=sorted(cleandict['just_matched'],
+       key=lambda c: [c.assignment,c.problem])
+    output['first_reviews']=sorted(cleandict['first_reviews'],
+       key=lambda c: [c.assignment,c.problem])
+    output['completed']=sorted(cleandict['completed'],
+       key=lambda c: [c.assignment,c.problem])
+        
+    return output
+
+def sorted_user_submissions(content):
+    coursename=content['coursename']
+    year=content['year']
+    term=content['term']
+    email = content['email']
+    subs=db.query(Submission).filter(
+    Submission.coursename==coursename,
+    Submission.year==year,
+    Submission.term==term,
+    Submission.email==email).all()
+    return sort_subs_by_stage(subs)
+
+def get_submission(content, by_email=False):
+    coursename=content['coursename']
+    year=content['year']
+    term=content['term']
+    submission_number=content['submission_number']
+    
+    if by_email==True:
+        email=content['email']
+        assignment=content['assignment']
+        problem=content['problem']
+        subs = db.session.query(Submission).filter(and_(Submission.email==email,
+        Submission.coursename==coursename,
+        Submission.year==year,
+        Submission.term==term,
+        Submission.assignment==assignment,
+        Submission.problem==problem)).first()
+    else:
+        subs = db.session.query(Submission).filter(and_(Submission.submission_number==submission_number,
+        Submission.coursename==coursename,
+        Submission.year==year,
+        Submission.term==term)).first()
+
+    return subs
+    
+def is_valid_problem(content):
+    coursename=content['coursename']
+    year=content['year']
+    term=content['term']
+    email=content['email']
+    assignment=content['assignment']
+    problem=content['problem']
+    #file=content['file']
+    probs = db.session.query(Problem).filter(and_(Problem.coursename==couresname,
+    Problem.year==year,
+    Problem.term==term,
+    Problem.assignment==assignment,
+    Problem.problem==problem)).all()
+    if len(probs)==1:
+        return True
+    else:
+        return False
+
+def get_submissions(content):
+    coursename=content['coursename']
+    year=content['year']
+    term=content['term']
+    email=content['email']
+    assignment=content['assignment']
+    problem=content['problem']
+    #file=content['file']
+    subs = db.query(Submission).filter(and_(Submission.email==email,
+    Submission.coursename==coursename,
+    Submission.year==year,
+    Submission.term==term,
+    Submission.assignment==assignment,
+    Submission.problem==problem)).all()
+    return subs
+
+def get_reviewersc(content):
+    #assumes valid content
+    sub=get_submissions(content)[0]
+    return [sub.reviewer1,sub.reviewer2]

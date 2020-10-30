@@ -37,6 +37,8 @@ class User(Base):
     grades = Column(JSON)
     config = Column(JSON)
     submissions=relationship('Submission',backref='user')
+    #reviewer1_submissions=relationship('Submission',backref='reviewer1_obj')
+    #reviewer2_submissions=relationship('Submission',backref='reviewer2_obj')
 
 class Course(Base):
     __tablename__ = 'courses'
@@ -122,6 +124,8 @@ class Submission(Base):
     user_id = Column(Integer,ForeignKey('users.id'))
     #user = relationship('User',back_populates='submissions')
     prob_id = Column(Integer,ForeignKey('problems.id'))
+    #reviewer1_obj_id = Column(Integer,ForeignKey('users.id'))
+    #reviewer2_obj_id = Column(Integer,ForeignKey('users.id'))
     #prob = relationship('Problem',back_populates='submissions')
  
 #Create an engine that stores data in the local directory's

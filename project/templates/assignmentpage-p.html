@@ -5,55 +5,44 @@
 <div class="subtitle"> Homework {{i}} </div>
 
 {% for p in problems %}
+
 <form method="POST"  action="/{{p.coursename}}/{{p.year}}/{{p.term}}/uploader2?assignment={{p.assignment}}&problem={{p.problem}}">
-<div class="columns">
-   
+<div class="columns, has-background-grey-lighter">
     <div class="column">
         <div class="box">
-            Problem {{p.problem}}: {{p.description}}
-                <div>
-                    <div> Hints: {{p.hints}} </div>
+            <div> Problem {{p.problem}}: {{p.description}} </div>
+            <div> Hints: {{p.hints}} </div>
+        </div>
+    </div>
  
     <div class="column">
-        <div> {{p.resources['videos']}} <div>
-        <div> {{p.resources['text']}} </div>
-        </div>
-       </div>
-    <div class="column">
-        {% if p.has_submitted(current_user) %}
-        
-        <div class="box">
-        {{ p.get_submission(current_user).link() }}
-        </div>
-        {% else: %}
-        <div class="file has-name is-right">
-          <label class="file-label">
-            <input class="file-input" type="file" name="upload_file">
-            <span class="file-cta">
-              <span class="file-icon">
-                <i class="fas fa-upload"></i>
-              </span>
-              <span class="file-label">
-                Choose a file…
-              </span>
-            </span>
-            <span class="file-name">
-                yourfile.pdf
-            </span>
-          </label>
-        </div>
-        <div>
-            <div class="control">
-             <input class="button" type="submit" name="submit_button" value="submit"> </input>
-             </div>
-        </div>
-        {% endif %}
-
+        <div> {{p.references['videos']}} <div>
+        <div> {{p.references['text']}} </div>
     </div>
         
-</div>
+    {% if p.has_submitted(current_user) %}
+    
+    <div class="column">
+        <div class="box, has-background-success">
+            <a href=/{{p.get_submission(current_user).url()}}> you submitted: {{p.get_submission(current_user).submission_number}} </a>
+        </div>
+    </div>
+    {% else: %}
+    upload_file{{p.problem}}
+    <div class="column, has-background-warning">
+        <div class="control">
+            <input class="button, has-background-warning" name="upload_file{{p.problem}}" id="file" type="file">
+            <input class="button, has-background-warning" type="submit" name="submit_button" value="submit"> </input>
+        </div>
+        
+        
+        
+
+     </div>
+        {% endif %}
 
 </form>
+
 {% endfor %}
 
 {% endblock %}

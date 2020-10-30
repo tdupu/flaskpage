@@ -7,7 +7,7 @@
 <div class="content">
 <ol type="1">
 {% for i in a_ind %}
-<li> <a href="/{{course.coursename}}/{{course.year}}/{{course.term}}/hw/{{i}}/{{'p'}}"> Homework {{i}} </a> (Due: {{a[i]['due_date']}}) </li>
+<li> <a href="/{{course.coursename}}/{{course.year}}/{{course.term}}/hw/{{i}}/{{'p'}}"> Homework {{i}} </a> (Due: {{get_date(a[i]['due_date'])}}) </li>
 
 {% endfor %}
 </ol>

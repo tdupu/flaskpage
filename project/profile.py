@@ -3,70 +3,10 @@ from flask_login import login_required, current_user
 from .models import db
 from .models import User, Submission
 from sqlalchemy import or_
+from .webfunctions import sort_subs_by_stage, sorted_user_submissions
 
 
-def sort_subs_by_stage(subs,reviewer=False):
-    cleandict={}
-    matched = []
-    cleandict['waiting']=[]
-    cleandict['just_matched']=[]
-    cleandict['first_reviews']=[]
-    cleandict['completed']=[]
-    
-    #split into matched and unmatched
-    if reviewer==False:
-        for s in subs:
-            if not s.is_matched():
-                cleandict['waiting'].append(s)
-            else:
-                matched.append(s)
-    if reviewer==True:
-        matched=subs
-    
-    #collect ones with reviews
-    for s in matched:
-        if s.is_reviewed():
-            cleandict['first_reviews'].append(s)
-    
-    #remove ones with removed from the matched
-    #these are now in the matching stage but waiting
-    #for first reviews
-    for c in cleandict['first_reviews']:
-        matched.remove(c)
-    cleandict['just_matched']=matched
-    
-    #collect all of the completed ones
-    for s in cleandict['first_reviews']:
-        if s.is_complete():
-            cleandict['completed'].append(s)
-        
-    #to complete remove the completed ones from the first_review list
-    for c in cleandict['completed']:
-        cleandict['first_reviews'].remove(c)
-        
-    output = {}
-    output['waiting']=sorted(cleandict['waiting'],
-    key=lambda c: [c.assignment,c.problem])
-    output['just_matched']=sorted(cleandict['just_matched'],
-       key=lambda c: [c.assignment,c.problem])
-    output['first_reviews']=sorted(cleandict['first_reviews'],
-       key=lambda c: [c.assignment,c.problem])
-    output['completed']=sorted(cleandict['completed'],
-       key=lambda c: [c.assignment,c.problem])
-        
-    return output
 
-def sorted_user_submissions(content):
-    coursename=content['coursename']
-    year=content['year']
-    term=content['term']
-    email = content['email']
-    subs=db.query(Submission).filter(
-    Submission.coursename==coursename,
-    Submission.year==year,
-    Submission.term==term,
-    Submission.email==email).all()
-    return sort_subs_by_stage(subs)
 
 ########################
 prof = Blueprint('prof', __name__)
@@ -81,7 +21,7 @@ def profile():
     ### get all relevant submissions
     ###
     times={}
-    subs=db.session.query(Submission).filter(Submission.email==email).all()
+    subs=current_user.submissions
     subdict=sort_subs_by_stage(subs)
     print(subdict)
     fresh_subs=subdict['waiting']
@@ -96,15 +36,12 @@ def profile():
     for sub in matched_subs + first_reviews:
         times[sub.submission_number]=sub.days_since_matched()
     
-    
-    
     ###
     ### get all relevant reviews
     ###
     
     #this is turning up empty
     #reviewsubs = db.session.query(Submission).filter( or_(Submission.reviewer1_email==email,Submission.reviewer2_email==email)).all()
-
     
     reviewsubs = db.session.query(Submission).filter(or_(Submission.reviewer1==current_user.netid, Submission.reviewer2==current_user.netid)).all()
     

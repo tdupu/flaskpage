@@ -143,7 +143,14 @@ def uploader2(coursename,year,term):
         return render_template('uploader2.html',**locals())
     if request.method == 'POST':
         content = request.args.to_dict(flat=False)
-        content['file']=request.file['file']
+        #return str([k for k in request.files.to_dict(flat=False).keys()])
+        #return(request.FILES['filename'].name)
+        filename='upload_file'+f'{content["problem"][0]}'
+        #uploaded_file=request.files[filename]
+        uploaded_file=request.files.get(filename)
+        print(uploaded_file)
+        content['file']=request.files.get(filename)
+        return "Hello World"
         result = process_submission(content)
         if result['success']==1:
             subs=get_submission(content)

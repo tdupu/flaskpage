@@ -109,40 +109,41 @@ def submission_page(coursename,year,term,submission_number):
     """
     This needs a get and show method
     """
-    subs=db.session.query(Submission).filter(and_(Submission.submission_number==submission_number,Submission.coursename==coursename,Submission.year==(int(year)+2000),Submission.term==term)).all()
     
-    if len(subs)==1:
-        s=subs[0]
-        dates = {}
-        times = [s.submission_time,s.review1_timestamp,s.reviewer1_assignment_time,s.review2_timestamp]
-        for t in times:
-            if t>0:
-                dates[t]=date(t)
-            else:
-                dates[t]='NA'
-        
-        coursenamelong = coursename_long(s.coursename)
-        #year is already long
-        termlong = term_long(s.term)
-        is_late=s.is_late(current_user)
-        
-        if s.is_submitter(current_user):
-            is_submitter=True
-            is_reviewer=False
-            return render_template('submission.html',**locals())
-            
-        elif s.has_submitted_review(current_user)==True:
-            is_submitter=False
-            is_reviewer=True
-            return render_template('submission.html',**locals())
-            
-        elif s.needs_review(current_user):
-            is_submitter=False
-            is_reviewer=True
-            return render_template('review.html', **locals())
-        
+    s=db.session.query(Submission).filter(
+    Submission.submission_number==int(submission_number)
+    ).first()
+    dates = {}
+    times = [s.submission_time,s.review1_timestamp,s.reviewer1_assignment_time,s.review2_timestamp]
+    for t in times:
+        if t>0:
+            dates[t]=date(t)
         else:
-            return "You seem to have nothing to do with this submission."
+            dates[t]='NA'
+    
+    coursenamelong = coursename_long(s.coursename)
+    #year is already long
+    termlong = term_long(s.term)
+    is_late=s.is_late(current_user)
+    #if True:
+    if s.user == current_user:
+        is_submitter=True
+        is_reviewer=False
+        #return "Hello World"
+        return render_template('submission.html',**locals())
+            
+    elif s.has_submitted_review(current_user)==True:
+        is_submitter=False
+        is_reviewer=True
+        return render_template('submission.html',**locals())
+        
+    elif s.needs_review(current_user):
+        is_submitter=False
+        is_reviewer=True
+        return render_template('review.html', **locals())
+    
+    else:
+        return "You seem to have nothing to do with this submission."
         
 @subpage.route('/<coursename>/<year>/<term>/<submission_number>', methods=['POST'])
 @login_required
@@ -192,7 +193,7 @@ def return_files(coursename,year,term):
     
     sub=get_submission(content)
     
-    if sub.is_reviwer(current_user) or sub.is_submitter(current_user):
+    if sub.is_reviewer(current_user) or sub.is_submitter(current_user):
         try:
             return send_file(f'data/{coursename}/{year}/{term}/uploads/{coursename}-{submission_number}-{assignment}-{problem}.pdf', attachment_filename=f'{coursename}-{submission_number}-{assignment}-{problem}.pdf')
         except Exception as e:
